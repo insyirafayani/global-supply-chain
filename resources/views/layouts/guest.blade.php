@@ -16,9 +16,14 @@
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+            <div class="text-center">
+                <a href="/" style="text-decoration: none;">
+                    <div style="font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #38bdf8, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
+                        🌍 GERIP
+                    </div>
+                    <div style="font-size: 12px; color: #475569; margin-top: 4px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
+                        Global Export Risk Intelligence Platform
+                    </div>
                 </a>
             </div>
 

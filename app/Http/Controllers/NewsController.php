@@ -2,16 +2,12 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\Country;
 use App\Services\NewsService;
 use App\Services\SentimentService;
 
-
-
 class NewsController extends Controller
 {
-
 
     public function sync(
         Country $country,
@@ -19,38 +15,22 @@ class NewsController extends Controller
         SentimentService $sentiment
     )
     {
-
-
-        $result =
-        $news->fetchNews(
+        $result = $news->sync(
             $country,
             $sentiment
         );
 
-
-
-        if($result===false){
-
-
-            return back()
-            ->with(
+        if ($result === false) {
+            return back()->with(
                 'error',
                 'GNews API gagal mengambil berita'
             );
-
-
         }
 
-
-
-        return back()
-        ->with(
+        return back()->with(
             'success',
-            $result.' berita berhasil disimpan'
+            $result . ' berita berhasil disimpan'
         );
-
-
     }
-
 
 }

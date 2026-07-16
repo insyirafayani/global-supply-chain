@@ -17,8 +17,9 @@ return new class extends Migration
 
 
         $table->foreignId('country_id')
-              ->constrained()
-              ->cascadeOnDelete();
+            ->nullable()
+            ->constrained()
+            ->nullOnDelete();
 
 
         $table->string('base_currency')

@@ -8,4 +8,5 @@ import 'leaflet/dist/leaflet.css';
 
 
 window.Chart = Chart;
+
 window.L = L;

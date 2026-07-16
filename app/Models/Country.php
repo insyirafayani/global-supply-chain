@@ -89,5 +89,11 @@ public function recommendations()
     return $this->hasMany(TradeRecommendation::class);
 }
 
+public function newsCaches()
+{
+    return $this->hasMany(
+        NewsCache::class
+    );
+}
 
 }

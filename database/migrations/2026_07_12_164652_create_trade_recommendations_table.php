@@ -11,35 +11,42 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::create('trade_recommendations', function(Blueprint $table){
+    Schema::create('trade_recommendations', function (Blueprint $table) {
 
-        $table->id();
-
-
-        $table->foreignId('country_id')
-              ->constrained()
-              ->cascadeOnDelete();
+    $table->id();
 
 
-        $table->string('recommendation');
+    $table->foreignId('country_id')
+          ->constrained()
+          ->cascadeOnDelete();
 
 
-        $table->text('reason')
-              ->nullable();
+    $table->string('recommendation');
 
 
-        $table->enum('priority',
-        [
-            'Low',
-            'Medium',
-            'High'
-        ]);
+    $table->string('priority');
 
 
-        $table->timestamps();
+    $table->text('reason');
 
 
-    });
+    $table->text('action')
+          ->nullable();
+
+
+    $table->decimal(
+        'confidence',
+        5,
+        2
+    )
+    ->default(0);
+
+
+
+    $table->timestamps();
+
+});
+
 }
 
     /**

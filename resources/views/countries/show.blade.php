@@ -1,758 +1,326 @@
-<x-app-layout>
+<x-dashboard-layout>
 
+<div class="mb-4">
 
-<x-slot name="header">
+<a href="{{ route('countries.index') }}"
+class="btn btn-outline-info mb-4">
 
-    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        {{ $country->name }} Monitoring
-    </h2>
+← Back to Country Monitor
 
-</x-slot>
+</a>
 
+<h1 style="color:#38bdf8">
 
+🌍 {{ $country->name }}
 
-<div class="container-fluid mt-4">
+</h1>
 
+<p class="text-secondary">
 
-<!-- COUNTRY INFORMATION -->
-
-<div class="card shadow mb-4">
-
-<div class="card-body">
-
-
-<h3>
-{{ $country->official_name }}
-</h3>
-
-
-<table class="table table-bordered">
-
-
-<tr>
-<th width="30%">Capital</th>
-<td>{{ $country->capital ?? '-' }}</td>
-</tr>
-
-
-<tr>
-<th>Region</th>
-<td>{{ $country->region ?? '-' }}</td>
-</tr>
-
-
-<tr>
-<th>Currency</th>
-<td>
-{{ $country->currency ?? '-' }}
-({{ $country->currency_code ?? '-' }})
-</td>
-</tr>
-
-
-<tr>
-<th>Language</th>
-<td>
-{{ $country->language ?? '-' }}
-</td>
-</tr>
-
-
-<tr>
-<th>Coordinate</th>
-<td>
-{{ $country->latitude }},
-{{ $country->longitude }}
-</td>
-</tr>
-
-
-</table>
-
-
-</div>
-
-</div>
-
-
-
-
-
-<!-- ECONOMIC INTELLIGENCE -->
-
-
-<div class="card shadow mb-4">
-
-<div class="card-body">
-
-
-<h4>
-Economic Intelligence
-</h4>
-
-
-<p class="text-muted">
-Retrieve GDP, Inflation, Population,
-Export and Import data from World Bank API.
-</p>
-
-
-
-<form method="POST"
-action="{{ route('economic.sync',$country->id) }}">
-
-@csrf
-
-
-<button class="btn btn-success">
-
-Sync Economic Data
-
-</button>
-
-
-</form>
-
-
-
-</div>
-
-</div>
-
-
-
-
-
-@if($country->economicData->count()>0)
-
-
-@php
-
-$economy =
-$country->economicData->last();
-
-@endphp
-
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4>
-Latest Economic Overview
-</h4>
-
-
-
-<div class="row">
-
-
-<div class="col-md-3">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>GDP</h6>
-
-<h4>
-${{number_format($economy->gdp)}}
-</h4>
-
-<small>USD</small>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="col-md-3">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>Inflation</h6>
-
-<h4>
-{{$economy->inflation}} %
-</h4>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="col-md-3">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>Population</h6>
-
-<h4>
-{{number_format($economy->population)}}
-</h4>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-<div class="col-md-3">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Trade Balance
-</h6>
-
-<h4>
-
-{{number_format(
-$economy->export_value -
-$economy->import_value
-)}}
-
-</h4>
-
-</div>
-
-</div>
-
-</div>
-
-
-</div>
-
-
-
-</div>
-
-</div>
-
-
-
-@endif
-
-
-
-
-
-
-
-<!-- WEATHER INTELLIGENCE -->
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4>
-Weather Intelligence
-</h4>
-
-
-<p class="text-muted">
-
-Real-time weather monitoring from Open-Meteo API.
+Global Supply Chain Intelligence Center
 
 </p>
+<!-- NAVIGATION -->
 
+<ul class="nav nav-pills mb-4" id="countryTabs">
 
+<li class="nav-item">
 
-<form method="POST"
-action="{{route('weather.sync',$country->id)}}">
+<a class="nav-link active"
 
+href="#overview"
 
-@csrf
+data-bs-toggle="tab">
 
+🏠 Overview
 
-<button class="btn btn-primary">
+</a>
 
-Sync Weather Data
+</li>
 
-</button>
+<li class="nav-item">
 
+<a class="nav-link"
 
-</form>
+href="#economic"
 
+data-bs-toggle="tab">
 
+📈 Economic
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#weather"
+
+data-bs-toggle="tab">
+
+☁ Weather
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#currency"
+
+data-bs-toggle="tab">
+
+💱 Currency
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#news"
+
+data-bs-toggle="tab">
+
+📰 News
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#risk"
+
+data-bs-toggle="tab">
+
+🚨 Risk
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#recommendation"
+
+data-bs-toggle="tab">
+
+⭐ Recommendation
+
+</a>
+
+</li>
+
+<li class="nav-item">
+
+<a class="nav-link"
+
+href="#trade"
+
+data-bs-toggle="tab">
+
+🚢 Trade
+
+</a>
+
+</li>
+
+</ul>
 
 </div>
 
+<div class="tab-content">
+
+<div
+class="tab-pane fade show active"
+id="overview">
+
+@include('countries.sections.profile')
 
 </div>
 
+<div
+class="tab-pane fade"
+id="economic">
 
-
-
-
-
-@if($country->weatherData->count()>0)
-
-
-@php
-
-$weather =
-$country->weatherData->last();
-
-@endphp
-
-
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4>
-Current Weather Condition
-</h4>
-
-
-
-<div class="row">
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Temperature
-</h6>
-
-<h3>
-{{$weather->temperature}} °C
-</h3>
-
+@include('countries.sections.economic')
 
 </div>
 
-</div>
+<div
+class="tab-pane fade"
+id="weather">
+
+@include('countries.sections.weather')
 
 </div>
 
+<div
+class="tab-pane fade"
+id="currency">
 
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Rainfall
-</h6>
-
-<h3>
-{{$weather->rainfall}} mm
-</h3>
-
+@include('countries.sections.currency')
 
 </div>
 
-</div>
+<div
+class="tab-pane fade"
+id="news">
+
+@include('countries.sections.news')
 
 </div>
 
+<div
+class="tab-pane fade"
+id="risk">
 
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Weather Status
-</h6>
-
-<h3>
-{{$weather->weather_status}}
-</h3>
-
+@include('countries.sections.risk')
 
 </div>
 
-</div>
+<div
+class="tab-pane fade"
+id="recommendation">
+
+@include('countries.sections.recommendation')
 
 </div>
 
+<div
+class="tab-pane fade"
+id="trade">
 
-
-</div>
-
-
-
-
-<hr>
-
-
-<strong>
-Wind Speed:
-</strong>
-
-{{$weather->wind_speed}} km/h
-
-
+@include('countries.sections.trade')
 
 </div>
 
-</div>
-
-
-
-@endif
-
-<!-- CURRENCY INTELLIGENCE -->
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4>
-Currency Impact Dashboard
-</h4>
-
-
-<p class="text-muted">
-
-Exchange rate monitoring from ExchangeRate API.
-
-</p>
-
-
-
-<form method="POST"
-action="{{route('currency.sync',$country->id)}}">
-
-
-@csrf
-
-
-<button class="btn btn-warning">
-
-Sync Currency Data
-
-</button>
-
-
-</form>
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-@if($country->currencyRates->count()>0)
-
-
-@php
-
-$currency =
-$country->currencyRates->last();
-
-@endphp
-
-
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4>
-Latest Currency Status
-</h4>
-
-
-
-<div class="row">
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Exchange Rate
-</h6>
-
-<h3>
-
-{{number_format(
-$currency->exchange_rate,
-4
-)}}
-
-</h3>
-
-
-<small>
-1 USD =
-{{$currency->currency_code}}
-</small>
-
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Change
-</h6>
-
-<h3>
-
-{{$currency->change_percent}} %
-
-</h3>
-
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-
-<div class="col-md-4">
-
-<div class="card bg-light">
-
-<div class="card-body">
-
-<h6>
-Currency Status
-</h6>
-
-
-<h3>
-
-{{$currency->currency_status}}
-
-</h3>
-
-
-</div>
-
-</div>
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-</div>
-
-
-
-@endif
-
-<!-- NEWS INTELLIGENCE -->
-
-
-@if($country->news->count() > 0)
-
-
-<div class="card shadow mb-4">
-
-
-<div class="card-body">
-
-
-<h4 class="mb-3">
-
-News Intelligence
-
-</h4>
-
-
-
-<div class="row">
-
-
-@foreach($country->news->take(6) as $news)
-
-
-
-<div class="col-md-6 mb-3">
-
-
-<div class="card border">
-
-
-<div class="card-body">
-
-
-<h5>
-
-{{ $news->title }}
-
-</h5>
-
-
-
-<p class="text-muted">
-
-{{ $news->source }}
-
-</p>
-
-
-
-<p>
-
-{{ Str::limit(
-$news->description,
-120
-) }}
-
-</p>
-
-
-
-@if($news->sentiment == 'Positive')
-
-
-<span class="badge bg-success">
-Positive
-</span>
-
-
-@elseif($news->sentiment == 'Negative')
-
-
-<span class="badge bg-danger">
-Negative
-</span>
-
-
-@else
-
-
-<span class="badge bg-secondary">
-Neutral
-</span>
-
-
-@endif
-
-
-
-
-<div class="mt-2">
-
-
-<small>
-
-Positive Score:
-{{ $news->positive_score }}
-
-|
-
-Negative Score:
-{{ $news->negative_score }}
-
-</small>
-
-
-</div>
-
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-@endforeach
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-@endif
-
-</div>
-
-
-</x-app-layout>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var lat = {{ $country->latitude ?? 'null' }};
+    var lng = {{ $country->longitude ?? 'null' }};
+    
+    if (lat === null || lng === null) {
+        lat = 0;
+        lng = 0;
+    }
+
+    const map = L.map('countryMap').setView([lat, lng], 6);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 18
+    }).addTo(map);
+
+    // Fix map render size issue inside bootstrap tab
+    setTimeout(function() { 
+        map.invalidateSize(); 
+        map.flyTo([lat, lng], 6, { animate: true, duration: 1.5 });
+    }, 400);
+
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        if (e.target.getAttribute('href') === '#overview') {
+            map.invalidateSize();
+            map.setView([lat, lng], map.getZoom());
+        }
+    });
+
+    @php
+        $risk = $country->riskScores->first();
+        $eco = $country->economicData->first();
+        $riskLevel = $risk ? $risk->risk_level : 'Unknown';
+        $gdp = $eco && $eco->gdp ? '$' . number_format($eco->gdp / 1e9, 1) . 'B' : '—';
+        $pop = $eco && $eco->population ? number_format($eco->population) : '—';
+    @endphp
+
+    var cName = @json($country->name);
+    var cCapital = @json($country->capital ?? '—');
+    var cRegion = @json($country->region ?? '—');
+    var cRisk = @json($riskLevel);
+    var cGdp = @json($gdp);
+    var cPop = @json($pop);
+
+    var riskColor = '#27AE60';
+    if(cRisk === 'High Risk') riskColor = '#EB5757';
+    if(cRisk === 'Medium Risk') riskColor = '#F2C94C';
+
+    var countryIcon = L.divIcon({
+        html: '<div style="font-size: 36px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); text-align: center; line-height: 1;">📍</div>',
+        className: 'custom-country-icon',
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36]
+    });
+
+    var countryMarker = L.marker([lat, lng], {
+        icon: countryIcon,
+        zIndexOffset: 1000 // Ensure country marker is always on top
+    }).addTo(map);
+
+    var countryPopup = '<div style="color:#0f172a; font-family:Inter,sans-serif; min-width:200px;">'
+        + '<h6 style="margin:0 0 5px 0; font-weight:800; font-size:15px;">' + cName + '</h6><hr style="margin:5px 0;">'
+        + '<b>Capital:</b> ' + cCapital + '<br>'
+        + '<b>Region:</b> ' + cRegion + '<br>'
+        + '<b>Latitude:</b> ' + parseFloat(lat).toFixed(4) + '<br>'
+        + '<b>Longitude:</b> ' + parseFloat(lng).toFixed(4) + '<br>'
+        + '<b>Risk Level:</b> <span style="color:' + riskColor + ';">' + cRisk + '</span><br>'
+        + '<b>GDP:</b> ' + cGdp + '<br>'
+        + '<b>Population:</b> ' + cPop
+        + '</div>';
+        
+    countryMarker.bindPopup(countryPopup).openPopup();
+
+    var ports = @json($country->ports);
+    if (ports && ports.length > 0) {
+        var portGroup = L.featureGroup().addTo(map);
+        
+        var portIcon = L.divIcon({
+            html: '<div style="font-size: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); text-align: center; line-height: 1;">⚓</div>',
+            className: 'custom-port-icon',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+            popupAnchor: [0, -11]
+        });
+
+        ports.forEach(function(port) {
+            if (port.latitude && port.longitude) {
+                var pMarker = L.marker([port.latitude, port.longitude], {
+                    icon: portIcon
+                }).addTo(portGroup);
+
+                var statusColor = port.status === 'Open' ? '#27AE60' : '#EB5757';
+                var pPopup = '<div style="color:#0f172a; font-family:Inter,sans-serif; min-width:200px;">'
+                    + '<h6 style="margin:0 0 5px 0; font-weight:700; font-size:14px;">⚓ ' + port.port_name + '</h6><hr style="margin:5px 0;">'
+                    + '<b>Type:</b> ' + (port.port_type || '—') + '<br>'
+                    + '<b>Status:</b> <span style="color:' + statusColor + ';">' + (port.status || '—') + '</span><br>'
+                    + '<b>Risk Level:</b> ' + (port.risk || '—') + '<br>'
+                    + '<b>Congestion:</b> ' + (port.congestion || '—') + '<br>'
+                    + '<b>Coords:</b> ' + parseFloat(port.latitude).toFixed(4) + ', ' + parseFloat(port.longitude).toFixed(4)
+                    + '</div>';
+                    
+                pMarker.bindPopup(pPopup);
+            }
+        });
+        
+        setTimeout(function() {
+            var groupBounds = portGroup.getBounds();
+            groupBounds.extend([lat, lng]); 
+            map.fitBounds(groupBounds.pad(0.15));
+            setTimeout(function() { countryMarker.openPopup(); }, 300);
+        }, 800);
+    }
+});
+</script>
+
+</x-dashboard-layout>

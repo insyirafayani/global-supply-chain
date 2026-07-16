@@ -9,14 +9,16 @@ class WeatherData extends Model
 {
 
 protected $fillable=[
-
-'country_id',
-'temperature',
-'rainfall',
-'wind_speed',
-'weather_status',
-'recorded_at'
-
+    'country_id',
+    'temperature',
+    'rainfall',
+    'wind_speed',
+    'humidity',
+    'pressure',
+    'weather_code',
+    'timezone',
+    'weather_status',
+    'recorded_at'
 ];
 
 
