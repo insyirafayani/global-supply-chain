@@ -46,7 +46,7 @@ $negative=[
 
 foreach($positive as $word){
 
-PositiveWord::create([
+PositiveWord::firstOrCreate([
 'word'=>$word
 ]);
 
@@ -56,7 +56,7 @@ PositiveWord::create([
 
 foreach($negative as $word){
 
-NegativeWord::create([
+NegativeWord::firstOrCreate([
 'word'=>$word
 ]);
 
