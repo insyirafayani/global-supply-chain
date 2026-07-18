@@ -10,24 +10,24 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::table('news_cache', function (Blueprint $table) {
+    {
+        if (!Schema::hasColumn('news_cache', 'content')) {
+            Schema::table('news_cache', function (Blueprint $table) {
+                $table->text('content')
+                      ->nullable()
+                      ->after('description');
+            });
+        }
+    }
 
-        $table->text('content')
-              ->nullable()
-              ->after('description');
-
-    });
-}
 
 
-
-public function down(): void
-{
-    Schema::table('news_cache', function (Blueprint $table) {
-
-        $table->dropColumn('content');
-
-    });
-}
+    public function down(): void
+    {
+        if (Schema::hasColumn('news_cache', 'content')) {
+            Schema::table('news_cache', function (Blueprint $table) {
+                $table->dropColumn('content');
+            });
+        }
+    }
 };
