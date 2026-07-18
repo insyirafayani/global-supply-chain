@@ -608,8 +608,8 @@ body {
 
         <div class="topbar-meta">
 
-            <span class="topbar-badge">
-                🕐 {{ now()->format('d M Y H:i') }}
+            <span class="topbar-badge" id="realtime-clock">
+                🕐 {{ now()->timezone('Asia/Jakarta')->format('d M Y H:i:s') }}
             </span>
 
             <span class="topbar-badge">
@@ -651,6 +651,37 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 @stack('scripts')
+
+<script>
+    function updateClock() {
+        const clockElement = document.getElementById('realtime-clock');
+        if (clockElement) {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('id-ID', {
+                timeZone: 'Asia/Jakarta',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            const parts = formatter.formatToParts(now);
+            const dateMap = {};
+            parts.forEach(({ type, value }) => {
+                dateMap[type] = value;
+            });
+            
+            // Expected format: dd Mmm yyyy HH:mm:ss
+            const timeString = `${dateMap.day} ${dateMap.month} ${dateMap.year} ${dateMap.hour}:${dateMap.minute}:${dateMap.second}`;
+            clockElement.innerHTML = `🕐 ${timeString}`;
+        }
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+</script>
 
 </body>
 
