@@ -28,7 +28,13 @@ use App\Http\Controllers\AdminController;
 */
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    if (auth()->check()) {
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('admin.index');
+        }
+        return redirect()->route('dashboard');
+    }
+    return view('welcome');
 });
 
 
