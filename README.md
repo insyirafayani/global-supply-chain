@@ -116,33 +116,6 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di lingkungan lokal:
 
 ---
 
-## 📸 Screenshots
-
-Berikut adalah beberapa tampilan antarmuka dari GERIP:
-
-### Executive Dashboard
-> *[Tambahkan screenshot Executive Dashboard di sini]*
-
-### Country Monitor
-> *[Tambahkan screenshot Country Monitor di sini]*
-
-### Risk Analytics
-> *[Tambahkan screenshot Risk Analytics di sini]*
-
-### Weather Monitoring
-> *[Tambahkan screenshot Weather Monitoring di sini]*
-
-### Currency Intelligence
-> *[Tambahkan screenshot Currency Intelligence di sini]*
-
-### Port Monitoring
-> *[Tambahkan screenshot Port Monitoring di sini]*
-
-### Admin Dashboard
-> *[Tambahkan screenshot Admin Dashboard di sini]*
-
----
-
 ## 📄 License
 
 This project was developed for academic purposes.
