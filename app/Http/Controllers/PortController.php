@@ -179,10 +179,7 @@ class PortController extends Controller
             return response()->json([]);
         }
 
-        $ports = $query
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->get();
+        $ports = $query->get();
 
         $formatted = $ports->map(function ($p) {
             // Find nearby ports (excluding current port) inside the same country
@@ -202,12 +199,20 @@ class PortController extends Controller
             // Auto-calculate risk if empty, or fallback to record risk
             $risk = $p->risk ?: 'Low Risk';
 
+            $lat = (float)$p->latitude;
+            $lng = (float)$p->longitude;
+
+            if (empty($lat) || empty($lng) || $lat == 0 || $lng == 0 || is_nan($lat) || is_nan($lng)) {
+                $lat = (float)($p->country?->latitude ?? 0);
+                $lng = (float)($p->country?->longitude ?? 0);
+            }
+
             return [
                 'id'            => $p->id,
                 'name'          => $p->port_name,
                 'code'          => $p->port_code,
-                'lat'           => (float)$p->latitude,
-                'lng'           => (float)$p->longitude,
+                'lat'           => $lat,
+                'lng'           => $lng,
                 'location'      => $p->location,
                 'status'        => $p->status,
                 'trade_volume'  => $p->trade_volume,
@@ -279,15 +284,21 @@ class PortController extends Controller
                 'population' => $economic ? number_format($economic->population) : '—',
                 'risk'       => $riskScore ? $riskScore->risk_level : 'Low Risk'
             ],
-            'ports' => $country->ports->filter(function ($p) {
-                return $p->latitude && $p->longitude;
-            })->values()->map(function ($p) use ($country) {
+            'ports' => $country->ports->values()->map(function ($p) use ($country) {
+                $lat = (float)$p->latitude;
+                $lng = (float)$p->longitude;
+
+                if (empty($lat) || empty($lng) || $lat == 0 || $lng == 0 || is_nan($lat) || is_nan($lng)) {
+                    $lat = (float)($country->latitude ?? 0);
+                    $lng = (float)($country->longitude ?? 0);
+                }
+
                 return [
                     'id'           => $p->id,
                     'name'         => $p->port_name,
                     'code'         => $p->port_code,
-                    'latitude'     => (float)$p->latitude,
-                    'longitude'    => (float)$p->longitude,
+                    'latitude'     => $lat,
+                    'longitude'    => $lng,
                     'location'     => $p->location,
                     'type'         => $p->port_type,
                     'status'       => $p->status,

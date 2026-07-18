@@ -1,4 +1,4 @@
-﻿<x-dashboard-layout>
+<x-dashboard-layout>
 
 @section('title', 'Port Monitoring')
 
@@ -192,9 +192,11 @@
                         $rB = match($port->risk??''){'High Risk'=>'rgba(239,68,68,.12)','Medium Risk'=>'rgba(245,158,11,.12)',default=>'rgba(34,197,94,.12)'};
                         $gC = match($port->congestion??''){'High'=>'#ef4444','Medium'=>'#f59e0b',default=>'#22c55e'};
                         $gB = match($port->congestion??''){'High'=>'rgba(239,68,68,.12)','Medium'=>'rgba(245,158,11,.12)',default=>'rgba(34,197,94,.12)'};
+                        $lat = (float)($port->latitude ?: ($port->country?->latitude ?? 0));
+                        $lng = (float)($port->longitude ?: ($port->country?->longitude ?? 0));
                     @endphp
                     <tr style="border-bottom:1px solid #1e293b;cursor:pointer;"
-                        onclick="window._portTableClick('{{ addslashes($port->country?->name??'') }}',{{ $port->latitude??0 }},{{ $port->longitude??0 }},{{ $port->id }})">
+                        onclick="window._portTableClick('{{ addslashes($port->country?->name??'') }}',{{ $lat }},{{ $lng }},{{ $port->id }})">
                         <td style="color:#64748b;font-size:12px;padding:10px 12px;">{{ $ports->firstItem()+$loop->index }}</td>
                         <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#f1f5f9;">{{ $port->port_name }}</td>
                         <td style="padding:10px 12px;"><span style="font-size:12px;font-family:monospace;color:#38bdf8;background:rgba(56,189,248,.1);padding:2px 6px;border-radius:4px;">{{ $port->port_code??'—' }}</span></td>
@@ -303,7 +305,11 @@ function render(data){
     markerLayer.clearLayers();markersById={};countryMarker=null;
     currentPorts=data.ports||[];
     var c=data.country;
-    if(c.latitude&&c.longitude){
+    var clat = parseFloat(c.latitude);
+    var clng = parseFloat(c.longitude);
+    var hasCountryCoords = clat && clng && !isNaN(clat) && !isNaN(clng) && clat !== 0 && clng !== 0;
+
+    if(hasCountryCoords){
         var ci=L.divIcon({html:'<div style="font-size:32px;line-height:1;cursor:pointer;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))">📍</div>',className:'',iconSize:[36,36],iconAnchor:[18,34]});
         var ch='<div style="min-width:220px;font-family:Inter,sans-serif;color:#f1f5f9;background:#0f172a;padding:10px;border-radius:8px">'
             +'<strong style="font-size:14px;color:#fff">📍 '+c.name+'</strong>'
@@ -312,12 +318,23 @@ function render(data){
             +'<b>Region:</b> '+c.region+'<br><b>Currency:</b> '+c.currency
             +'<br><b>GDP:</b> '+c.gdp+'<br><b>Population:</b> '+c.population
             +'<br><b>Risk:</b> '+c.risk+'</div></div>';
-        countryMarker=L.marker([c.latitude,c.longitude],{icon:ci}).bindPopup(ch,{maxWidth:260,closeButton:false});
+        countryMarker=L.marker([clat,clng],{icon:ci}).bindPopup(ch,{maxWidth:260,closeButton:false});
         markerLayer.addLayer(countryMarker);
     }
     currentPorts.forEach(function(p){
-        if(!p.latitude||!p.longitude)return;
-        var risk=p.risk_score||'Low Risk';
+        var lat = parseFloat(p.latitude) || parseFloat(p.lat);
+        var lng = parseFloat(p.longitude) || parseFloat(p.lng);
+        if(!lat || !lng || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0){
+            if(hasCountryCoords){
+                lat = clat;
+                lng = clng;
+            } else {
+                return;
+            }
+        }
+        p.latitude = lat;
+        p.longitude = lng;
+        var risk=p.risk_score||p.risk||'Low Risk';
         var rc=risk==='High Risk'?'#ef4444':(risk==='Medium Risk'?'#f59e0b':'#22c55e');
         var pi=L.divIcon({html:'<div style="font-size:20px;line-height:1;cursor:pointer;filter:drop-shadow(0 1px 4px rgba(0,0,0,.7))">⚓</div>',className:'',iconSize:[24,24],iconAnchor:[12,12]});
         var ph='<div style="min-width:220px;font-family:Inter,sans-serif;color:#f1f5f9;background:#0f172a;padding:10px;border-radius:8px">'
@@ -325,21 +342,21 @@ function render(data){
             +'<br><span style="font-size:10px;font-family:monospace;color:#38bdf8;background:rgba(56,189,248,.1);padding:1px 5px;border-radius:3px">'+(p.code||'—')+'</span>'
             +'<hr style="border-color:#334155;margin:6px 0">'
             +'<div style="font-size:11px;line-height:1.9">'
-            +'<b>Type:</b> '+(p.type||'—')+'<br><b>Status:</b> '+(p.status||'—')
+            +'<b>Type:</b> '+(p.type||p.port_type||'—')+'<br><b>Status:</b> '+(p.status||'—')
             +'<br><b>Capacity:</b> '+(p.capacity?Number(p.capacity).toLocaleString():'—')
             +'<br><b>Congestion:</b> '+(p.congestion||'—')
             +'<br><b>Risk:</b> <span style="color:'+rc+';font-weight:700">'+risk+'</span>'
             +'</div>'
             +'<button class="btn btn-primary btn-sm w-100 mt-2" style="font-size:10px" onclick="window._portShowPanel('+p.id+')">View Full Profile</button>'
             +'</div>';
-        var m=L.marker([p.latitude,p.longitude],{icon:pi}).bindPopup(ph,{maxWidth:260,closeButton:false});
+        var m=L.marker([lat,lng],{icon:pi}).bindPopup(ph,{maxWidth:260,closeButton:false});
         m.on('click',function(){window._portShowPanel(p.id);});
         markerLayer.addLayer(m);
         markersById[p.id]=m;
     });
-    if(c.latitude&&c.longitude){
-        map.flyTo([c.latitude,c.longitude],6,{duration:1.4});
-        setTimeout(function(){if(countryMarker)countryMarker.openPopup();},1800);
+    if(hasCountryCoords){
+        map.setView([clat, clng], 6);
+        setTimeout(function(){if(countryMarker)countryMarker.openPopup();}, 500);
     }
     console.log('[GERIP] Rendered',currentPorts.length,'ports for',c.name);
 }
