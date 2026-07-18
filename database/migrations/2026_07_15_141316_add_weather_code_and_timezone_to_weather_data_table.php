@@ -27,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('weather_data', function (Blueprint $table) {
-            $table->dropColumn(['weather_code', 'timezone']);
+            if (Schema::hasColumn('weather_data', 'weather_code')) {
+                $table->dropColumn('weather_code');
+            }
+            if (Schema::hasColumn('weather_data', 'timezone')) {
+                $table->dropColumn('timezone');
+            }
         });
     }
 };

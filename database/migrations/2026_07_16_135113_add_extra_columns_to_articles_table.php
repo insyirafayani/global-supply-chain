@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
-            $table->string('thumbnail')->nullable();
-            $table->date('date')->nullable();
-            $table->string('author')->nullable();
-            $table->enum('status', ['Publish', 'Draft'])->default('Draft');
+            if (!Schema::hasColumn('articles', 'thumbnail')) {
+                $table->string('thumbnail')->nullable();
+            }
+            if (!Schema::hasColumn('articles', 'date')) {
+                $table->date('date')->nullable();
+            }
+            if (!Schema::hasColumn('articles', 'author')) {
+                $table->string('author')->nullable();
+            }
+            if (!Schema::hasColumn('articles', 'status')) {
+                $table->enum('status', ['Publish', 'Draft'])->default('Draft');
+            }
         });
     }
 
@@ -25,7 +33,18 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('articles', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('articles', 'thumbnail')) {
+                $table->dropColumn('thumbnail');
+            }
+            if (Schema::hasColumn('articles', 'date')) {
+                $table->dropColumn('date');
+            }
+            if (Schema::hasColumn('articles', 'author')) {
+                $table->dropColumn('author');
+            }
+            if (Schema::hasColumn('articles', 'status')) {
+                $table->dropColumn('status');
+            }
         });
     }
 };

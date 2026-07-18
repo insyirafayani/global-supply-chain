@@ -11,19 +11,13 @@ return new class extends Migration
     public function up(): void
     {
 
-        Schema::table('trade_recommendations', function (Blueprint $table) {
-
-
-            $table->decimal(
-                'confidence',
-                5,
-                2
-            )
-            ->default(0)
-            ->after('action');
-
-
-        });
+        if (!Schema::hasColumn('trade_recommendations', 'confidence')) {
+            Schema::table('trade_recommendations', function (Blueprint $table) {
+                $table->decimal('confidence', 5, 2)
+                      ->default(0)
+                      ->after('action');
+            });
+        }
 
     }
 
@@ -32,13 +26,11 @@ return new class extends Migration
     public function down(): void
     {
 
-        Schema::table('trade_recommendations', function (Blueprint $table) {
-
-
-            $table->dropColumn('confidence');
-
-
-        });
+        if (Schema::hasColumn('trade_recommendations', 'confidence')) {
+            Schema::table('trade_recommendations', function (Blueprint $table) {
+                $table->dropColumn('confidence');
+            });
+        }
 
     }
 

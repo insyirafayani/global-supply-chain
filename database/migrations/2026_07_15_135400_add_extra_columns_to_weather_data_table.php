@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('weather_data', function (Blueprint $table) {
-            $table->decimal('humidity', 5, 2)->nullable()->after('wind_speed');
-            $table->decimal('pressure', 7, 2)->nullable()->after('humidity');
+            if (!Schema::hasColumn('weather_data', 'humidity')) {
+                $table->decimal('humidity', 5, 2)->nullable()->after('wind_speed');
+            }
+            if (!Schema::hasColumn('weather_data', 'pressure')) {
+                $table->decimal('pressure', 7, 2)->nullable()->after('humidity');
+            }
         });
     }
 
@@ -23,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('weather_data', function (Blueprint $table) {
-            $table->dropColumn(['humidity', 'pressure']);
+            if (Schema::hasColumn('weather_data', 'humidity')) {
+                $table->dropColumn('humidity');
+            }
+            if (Schema::hasColumn('weather_data', 'pressure')) {
+                $table->dropColumn('pressure');
+            }
         });
     }
 };
