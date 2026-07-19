@@ -17,51 +17,46 @@ class CountrySeeder extends Seeder
      */
     public function run()
     {
-        $this->command->info('Fetching countries...');
+        $this->command->info('Country Seeder Started');
         
         $countries = [];
-        $source = 'API';
+        $source = 'Local File (database/data/countries.json)';
+        $filePath = database_path('data/countries.json');
 
         try {
-            // 1. Coba dari API yang valid (restcountries.com v3.1 sudah deprecated dan mengembalikan pesan error)
-            $response = Http::withoutVerifying()->timeout(30)->get("https://raw.githubusercontent.com/mledoze/countries/master/dist/countries.json");
-            
-            $this->command->info('Response Status: ' . $response->status());
-            Log::info('Country API Response Status: ' . $response->status());
-            
-            if ($response->successful()) {
-                $countries = $response->json();
+            // 1. Cek apakah file master JSON ada, jika tidak ada, download dan simpan
+            if (!File::exists($filePath)) {
+                $this->command->info('Master file not found. Downloading from API...');
                 
-                // Validasi tambahan: Pastikan data yang diterima adalah array of objects/arrays (bukan pesan error)
-                if (isset($countries['success']) || (isset($countries[0]) && !isset($countries[0]['cca2']))) {
-                    $this->command->warn('API mengembalikan pesan tidak terduga/error format.');
-                    $countries = [];
+                // Buat folder jika belum ada
+                if (!File::exists(dirname($filePath))) {
+                    File::makeDirectory(dirname($filePath), 0755, true);
                 }
-            } else {
-                $this->command->warn('API failed. Response Body: ' . substr($response->body(), 0, 200));
-                Log::warning('Country API Body: ' . $response->body());
-            }
-        } catch (\Throwable $e) {
-            $this->command->error('API Request Error: ' . $e->getMessage());
-            Log::error('Country API Error: ' . $e->getMessage());
-        }
 
-        // 2. Fallback otomatis ke File Lokal jika API gagal atau kosong
-        if (empty($countries) || !is_array($countries)) {
-            $this->command->warn('API Data is empty or invalid. Using local fallback...');
-            $source = 'Fallback Local JSON';
-            
-            $fallbackPath = database_path('data/countries.json');
-            if (File::exists($fallbackPath)) {
-                $jsonContent = File::get($fallbackPath);
-                $countries = json_decode($jsonContent, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    $this->command->error('Fallback JSON format error: ' . json_last_error_msg());
-                    $countries = [];
+                $response = Http::withoutVerifying()->timeout(30)->get("https://raw.githubusercontent.com/mledoze/countries/master/dist/countries.json");
+                
+                if ($response->successful()) {
+                    File::put($filePath, $response->body());
+                    $source = 'API (Downloaded to Local)';
+                } else {
+                    $this->command->error('Failed to download master data from API. Status: ' . $response->status());
+                    return;
                 }
-            } else {
-                $this->command->error('Fallback file not found: ' . $fallbackPath);
             }
+
+            // 2. Baca dari file lokal
+            $jsonContent = File::get($filePath);
+            $countries = json_decode($jsonContent, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $this->command->error('JSON format error: ' . json_last_error_msg());
+                return;
+            }
+
+        } catch (\Throwable $e) {
+            $this->command->error('Error initializing data source: ' . $e->getMessage());
+            Log::error('Country Seeder Error: ' . $e->getMessage());
+            return;
         }
 
         if (!is_array($countries)) {
@@ -69,6 +64,8 @@ class CountrySeeder extends Seeder
         }
 
         $receivedCount = count($countries);
+        $this->command->info("Source: {$source}");
+        $this->command->info("Total received: {$receivedCount}");
         $this->command->info("Countries received: {$receivedCount}");
         
         if ($receivedCount === 0) {
@@ -137,6 +134,7 @@ class CountrySeeder extends Seeder
                 $count++;
             }
 
+            $this->command->info("Total inserted: {$count}");
             $this->command->info("Inserted {$count} countries.");
 
         } catch (\Throwable $e) {

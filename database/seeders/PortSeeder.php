@@ -262,8 +262,16 @@ class PortSeeder extends Seeder
         
         try {
             foreach ($portsData as $data) {
-                // Find country dynamically
-                $country = Country::where('name', 'like', '%' . $data['country_name'] . '%')->first();
+                // Find country dynamically, case insensitive exact or like match
+                $country = Country::whereRaw('LOWER(name) = ?', [strtolower($data['country_name'])])
+                                  ->orWhereRaw('LOWER(official_name) = ?', [strtolower($data['country_name'])])
+                                  ->first();
+
+                if (!$country) {
+                    // Fallback to LIKE if exact match fails
+                    $country = Country::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($data['country_name']) . '%'])->first();
+                }
+
                 if ($country) {
                     unset($data['country_name']);
                     $data['country_id'] = $country->id;
