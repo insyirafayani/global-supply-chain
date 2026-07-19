@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Port;
 use App\Models\Country;
+use Illuminate\Support\Facades\Log;
 
 class PortSeeder extends Seeder
 {
@@ -13,8 +14,6 @@ class PortSeeder extends Seeder
      */
     public function run(): void
     {
-        // Truncate existing ports to start fresh
-        Port::truncate();
 
         $portsData = [
             [
@@ -259,14 +258,30 @@ class PortSeeder extends Seeder
             ],
         ];
 
-        foreach ($portsData as $data) {
-            // Find country dynamically
-            $country = Country::where('name', 'like', '%' . $data['country_name'] . '%')->first();
-            if ($country) {
-                unset($data['country_name']);
-                $data['country_id'] = $country->id;
-                Port::create($data);
+        $count = 0;
+        
+        try {
+            foreach ($portsData as $data) {
+                // Find country dynamically
+                $country = Country::where('name', 'like', '%' . $data['country_name'] . '%')->first();
+                if ($country) {
+                    unset($data['country_name']);
+                    $data['country_id'] = $country->id;
+                    
+                    Port::updateOrCreate(
+                        ['port_code' => $data['port_code']],
+                        $data
+                    );
+                    $count++;
+                } else {
+                    $this->command->warn("Country '{$data['country_name']}' not found for port '{$data['port_name']}'.");
+                }
             }
+
+            $this->command->info("Inserted {$count} ports.");
+        } catch (\Exception $e) {
+            Log::error('Error seeding ports: ' . $e->getMessage());
+            $this->command->error('Error seeding ports: ' . $e->getMessage());
         }
     }
 }
