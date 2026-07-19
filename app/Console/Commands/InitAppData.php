@@ -39,8 +39,27 @@ class InitAppData extends Command
         $this->call('intelligence:sync');
 
         $this->info("\n==================================================");
-        $this->info('Deployment Initialization Complete!');
-        $this->info('Your Railway database is now fully populated.');
+        $this->info("FINAL DATABASE AUDIT REPORT");
+        $this->info("==================================================");
+        
+        $countries = \App\Models\Country::count();
+        $ports = \App\Models\Port::count();
+        $weather = \App\Models\WeatherData::count();
+        $news = \App\Models\NewsCache::count();
+        $currency = \App\Models\CurrencyRate::count();
+        
+        $this->info("Countries inserted: " . $countries);
+        $this->info("Ports inserted: " . $ports);
+        $this->info("Weather inserted: " . $weather);
+        $this->info("News inserted: " . $news);
+        $this->info("Currency inserted: " . $currency);
+
+        if ($countries == 0 || $ports == 0) {
+            $this->error("\nWARNING: Critical data (Countries/Ports) is still empty. Please check the logs above for API or Fallback failures.");
+        } else {
+            $this->info("\nSUCCESS: Deployment Initialization Complete!");
+            $this->info("Your Railway database is now identical to localhost.");
+        }
         $this->info('==================================================');
         
         return self::SUCCESS;

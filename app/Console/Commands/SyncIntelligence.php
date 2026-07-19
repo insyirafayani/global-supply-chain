@@ -88,20 +88,24 @@ class SyncIntelligence extends Command
                     foreach ($countries as $country) {
                         $iso2 = strtoupper($country->iso2);
                         if (isset($mapped[$iso2])) {
-                            $item = $mapped[$iso2];
-                            $country->update([
-                                'official_name' => $item['name']['official'] ?? $country->official_name,
-                                'capital' => isset($item['capital']) ? implode(', ', $item['capital']) : $country->capital,
-                                'region' => $item['region'] ?? $country->region,
-                                'subregion' => $item['subregion'] ?? $country->subregion,
-                                'iso3' => $item['cca3'] ?? $country->iso3,
-                                'latitude' => isset($item['latlng'][0]) ? $item['latlng'][0] : $country->latitude,
-                                'longitude' => isset($item['latlng'][1]) ? $item['latlng'][1] : $country->longitude,
-                                'flag' => $item['flags']['png'] ?? ($item['flags']['svg'] ?? $country->flag),
-                                'currency_code' => isset($item['currencies']) ? array_key_first($item['currencies']) : $country->currency_code,
-                                'currency' => isset($item['currencies']) ? ($item['currencies'][array_key_first($item['currencies'])]['name'] ?? null) : $country->currency,
-                                'language' => isset($item['languages']) ? implode(', ', array_values($item['languages'])) : $country->language,
-                            ]);
+                            try {
+                                $item = $mapped[$iso2];
+                                $country->update([
+                                    'official_name' => $item['name']['official'] ?? $country->official_name,
+                                    'capital' => isset($item['capital']) ? implode(', ', $item['capital']) : $country->capital,
+                                    'region' => $item['region'] ?? $country->region,
+                                    'subregion' => $item['subregion'] ?? $country->subregion,
+                                    'iso3' => $item['cca3'] ?? $country->iso3,
+                                    'latitude' => isset($item['latlng'][0]) ? $item['latlng'][0] : $country->latitude,
+                                    'longitude' => isset($item['latlng'][1]) ? $item['latlng'][1] : $country->longitude,
+                                    'flag' => $item['flags']['png'] ?? ($item['flags']['svg'] ?? $country->flag),
+                                    'currency_code' => isset($item['currencies']) ? array_key_first($item['currencies']) : $country->currency_code,
+                                    'currency' => isset($item['currencies']) ? ($item['currencies'][array_key_first($item['currencies'])]['name'] ?? null) : $country->currency,
+                                    'language' => isset($item['languages']) ? implode(', ', array_values($item['languages'])) : $country->language,
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error("Failed updating country metadata for {$iso2}: " . $e->getMessage());
+                            }
                         }
                         $bar->advance();
                     }
@@ -130,39 +134,43 @@ class SyncIntelligence extends Command
                     foreach ($countries as $country) {
                         $code = $country->currency_code;
                         if ($code && isset($rates[$code])) {
-                            $rate = $rates[$code];
-                            $existing = CurrencyRate::where('country_id', $country->id)->first();
-                            $prevRate = $existing ? $existing->exchange_rate : $rate;
-                            
-                            $change = 0;
-                            if ($prevRate > 0) {
-                                $change = (($rate - $prevRate) / $prevRate) * 100;
-                            }
-                            $change = min(999.99, max(-999.99, $change));
+                            try {
+                                $rate = $rates[$code];
+                                $existing = CurrencyRate::where('country_id', $country->id)->first();
+                                $prevRate = $existing ? $existing->exchange_rate : $rate;
+                                
+                                $change = 0;
+                                if ($prevRate > 0) {
+                                    $change = (($rate - $prevRate) / $prevRate) * 100;
+                                }
+                                $change = min(999.99, max(-999.99, $change));
 
-                            $absChange = abs($change);
-                            $status = 'Cost Stable';
-                            if ($absChange > 8) {
-                                $status = 'Trade Critical';
-                            } elseif ($absChange > 5) {
-                                $status = 'Cost Surge';
-                            } elseif ($absChange > 2) {
-                                $status = 'Cost Warning';
-                            }
+                                $absChange = abs($change);
+                                $status = 'Cost Stable';
+                                if ($absChange > 8) {
+                                    $status = 'Trade Critical';
+                                } elseif ($absChange > 5) {
+                                    $status = 'Cost Surge';
+                                } elseif ($absChange > 2) {
+                                    $status = 'Cost Warning';
+                                }
 
-                            CurrencyRate::updateOrCreate(
-                                ['country_id' => $country->id],
-                                [
-                                    'base_currency' => 'USD',
-                                    'currency_code' => $code,
-                                    'currency_name' => $country->currency ?? $code,
-                                    'exchange_rate' => $rate,
-                                    'previous_rate' => $prevRate,
-                                    'change_percent' => $change,
-                                    'currency_status' => $status,
-                                    'recorded_at' => now(),
-                                ]
-                            );
+                                CurrencyRate::updateOrCreate(
+                                    ['country_id' => $country->id],
+                                    [
+                                        'base_currency' => 'USD',
+                                        'currency_code' => $code,
+                                        'currency_name' => $country->currency ?? $code,
+                                        'exchange_rate' => $rate,
+                                        'previous_rate' => $prevRate,
+                                        'change_percent' => $change,
+                                        'currency_status' => $status,
+                                        'recorded_at' => now(),
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                Log::error("Failed updating currency rate for {$code} (Country ID {$country->id}): " . $e->getMessage());
+                            }
                         }
                         $bar->advance();
                     }
@@ -211,36 +219,40 @@ class SyncIntelligence extends Command
                     foreach ($chunk->values() as $index => $country) {
                         $item = $results[$index] ?? null;
                         if ($item && isset($item['current'])) {
-                            $temp = $item['current']['temperature_2m'] ?? 20;
-                            $wind = $item['current']['wind_speed_10m'] ?? 0;
-                            $rain = $item['current']['rain'] ?? 0;
-                            $humidity = $item['current']['relative_humidity_2m'] ?? 50;
-                            $pressure = $item['hourly']['surface_pressure'][0] ?? 1013;
-                            $weatherCode = $item['current']['weather_code'] ?? 0;
+                            try {
+                                $temp = $item['current']['temperature_2m'] ?? 20;
+                                $wind = $item['current']['wind_speed_10m'] ?? 0;
+                                $rain = $item['current']['rain'] ?? 0;
+                                $humidity = $item['current']['relative_humidity_2m'] ?? 50;
+                                $pressure = $item['hourly']['surface_pressure'][0] ?? 1013;
+                                $weatherCode = $item['current']['weather_code'] ?? 0;
 
-                            $status = 'Normal';
-                            if ($wind > 60 || $temp > 38 || $temp < -5) {
-                                $status = 'Extreme';
-                            } elseif ($wind > 40) {
-                                $status = 'Storm Risk';
-                            } elseif ($rain > 15) {
-                                $status = 'Heavy Rain';
+                                $status = 'Normal';
+                                if ($wind > 60 || $temp > 38 || $temp < -5) {
+                                    $status = 'Extreme';
+                                } elseif ($wind > 40) {
+                                    $status = 'Storm Risk';
+                                } elseif ($rain > 15) {
+                                    $status = 'Heavy Rain';
+                                }
+
+                                WeatherData::updateOrCreate(
+                                    ['country_id' => $country->id],
+                                    [
+                                        'temperature' => $temp,
+                                        'rainfall' => $rain,
+                                        'wind_speed' => $wind,
+                                        'humidity' => $humidity,
+                                        'pressure' => $pressure,
+                                        'weather_code' => $weatherCode,
+                                        'timezone' => $item['timezone'] ?? 'UTC',
+                                        'weather_status' => $status,
+                                        'recorded_at' => now(),
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                Log::error("Failed updating weather data for Country ID {$country->id}: " . $e->getMessage());
                             }
-
-                            WeatherData::updateOrCreate(
-                                ['country_id' => $country->id],
-                                [
-                                    'temperature' => $temp,
-                                    'rainfall' => $rain,
-                                    'wind_speed' => $wind,
-                                    'humidity' => $humidity,
-                                    'pressure' => $pressure,
-                                    'weather_code' => $weatherCode,
-                                    'timezone' => $item['timezone'] ?? 'UTC',
-                                    'weather_status' => $status,
-                                    'recorded_at' => now(),
-                                ]
-                            );
                         }
                         $bar->advance();
                     }
